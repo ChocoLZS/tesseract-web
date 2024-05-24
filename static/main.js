@@ -1,4 +1,17 @@
-const droparea = document.querySelector(".drop");
+function _debounce(fn, delay) {
+    var timer = null;
+    return function () {
+        var context = this;
+        var args = arguments;
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+            fn.apply(context, args);
+        }, delay);
+    };
+}
+
+const droparea = document.querySelector("#drop-box");
+const dropoverlay = document.querySelector("#drop-overlay");
 const input = document.querySelector("#uploadimage");
 
 state = {
@@ -12,12 +25,17 @@ input.addEventListener("change", () => {
     onDrop(files[0]);
 });
 
-const dragOver = () => {
+const onDragOver = _debounce(() => {
+    if (state.isDragging) return;
     state.isDragging = true;
-};
-const dragLeave = () => {
+    dropoverlay.style.opacity = 1;
+}, 16.67);
+
+const onDragLeave = _debounce(() => {
+    if (!state.isDragging) return;
     state.isDragging = false;
-};
+    dropoverlay.style.opacity = 0;
+}, 16.67);
 
 const displayImage = () => {
     document.querySelector("#ocr-img").src = URL.createObjectURL(state.file);
@@ -47,6 +65,7 @@ droparea.addEventListener("drop", (e) => {
     e.preventDefault();
     const files = e.dataTransfer.files;
     onDrop(files[0]);
+    onDragLeave();
 });
 
 document.querySelector("#ocr-img").addEventListener("drop", (e) => {
@@ -58,6 +77,17 @@ document.querySelector("#ocr-img").addEventListener("drop", (e) => {
 droparea.addEventListener("dragover", (event) => {
     // prevent default to allow drop
     event.preventDefault();
+    onDragOver();
+});
+
+droparea.addEventListener("dragleave", (event) => {
+    event.preventDefault();
+    const rect = droparea.getBoundingClientRect();
+    const x = event.clientX;
+    const y = event.clientY;
+    if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
+        onDragLeave();
+    }
 });
 
 document.onpaste = (event) => {
@@ -81,6 +111,19 @@ function doOCR() {
     if (!state.file) {
         Toastify({
             text: `请选择一个文件`,
+            style: {
+                background: "#00a6ed",
+                color: "white",
+            },
+        }).showToast();
+        return;
+    }
+    if (
+        !(state.file.type.indexOf("image/") >= 0) &&
+        !(state.file.type.indexOf("application/pdf") >= 0)
+    ) {
+        Toastify({
+            text: `请选择一个图片或 PDF 文件`,
             style: {
                 background: "#00a6ed",
                 color: "white",

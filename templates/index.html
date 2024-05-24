@@ -1,129 +1,158 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <meta name="theme-color" content="#00A7D0" />
-    <meta
-      name="description"
-      content="OCR for images and pdf. Supports png, jpeg, bmp, pnm, gif, tiff, webp, pdf formats. Scan image and pdf and convert to text. Powered by Tesseract OCR. Supports 114 languages."
-    />
-    <title>Tesseract OCR</title>
-    <meta description="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
-    />
-    <!-- <link href="{{ url_for('static', filename='main.css') }}" rel="stylesheet"> -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
-    />
-    <script
-      type="text/javascript"
-      src="https://cdn.jsdelivr.net/npm/toastify-js"
-    ></script>
-  </head>
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+        <meta name="theme-color" content="#00A7D0" />
+        <meta
+            name="description"
+            content="OCR for images and pdf. Supports png, jpeg, bmp, pnm, gif, tiff, webp, pdf formats. Scan image and pdf and convert to text. Powered by Tesseract OCR. Supports 114 languages."
+        />
+        <title>Tesseract OCR</title>
+        <meta description="utf-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, shrink-to-fit=no"
+        />
+        <!-- <link href="{{ url_for('static', filename='main.css') }}" rel="stylesheet"> -->
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link
+            rel="stylesheet"
+            type="text/css"
+            href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
+        />
+        <script
+            type="text/javascript"
+            src="https://cdn.jsdelivr.net/npm/toastify-js"
+        ></script>
+    </head>
 
-  <body class="flex flex-col min-h-screen bg-[#e8e8e3]">
-    <header class="border-b-[2px] border-b-black py-8">
-      <h1 class="font-bold text-6xl text-center">Tesseract OCR</h1>
-    </header>
-    <main class="grow flex flex-col mt-8">
-      <section class="flex lg:flex-row max-lg:flex-col grow">
-        <section class="mx-8 flex flex-col lg:basis-1/2 space-y-4">
-          <select
-            class="px-4 box-shadow-xl appearance-none rounded-xl outline-none py-2 bg-[#f7f7f3] text-[#383834] text-lg font-semibold"
-            id="source_lang"
-          >
-            {% for code in languages %} {% if code == "jpn" %}
-            <option value="{{code}}" selected>
-              {{code}} - {{languages[code]}}
-            </option>
-            " {% else %}
-            <option value="{{code}}">{{code}} - {{languages[code]}}</option>
-            " {% endif %} {% endfor %}
-          </select>
-          <p>拖动、粘贴或者上传图片或者pdf到这里</p>
-          <input
-            id="uploadimage"
-            type="file"
-            name="file"
-            accept="image/*, application/pdf"
-          />
-          <embed class="hidden" id="ocr-pdf" />
-          <img class="hidden" id="ocr-img" />
-        </section>
-        <div class="lg:hidden max-lg:block h-px bg-black"></div>
-        <section class="result lg:basis-1/2 max-lg:grow max-lg:flex">
-          <textarea
-            class="bg-[#f7f7f3] max-lg:grow w-full lg:h-full resize-none outline-none p-4"
-            id="resulttext"
-            placeholder="识别的内容会在此处显示..."
-          ></textarea>
-        </section>
-      </section>
+    <body class="flex flex-col min-h-screen bg-[#e8e8e3]">
+        <header class="border-b-[2px] border-b-black py-8">
+            <h1 class="font-bold text-6xl text-center">Tesseract OCR</h1>
+        </header>
+        <main class="grow flex flex-col mt-8">
+            <section class="flex lg:flex-row max-lg:flex-col grow">
+                <section
+                    class="px-8 flex flex-col lg:basis-1/2 space-y-4 relative"
+                    id="drop-box"
+                >
+                    <select
+                        class="px-4 box-shadow-xl appearance-none rounded-xl outline-none py-2 bg-[#f7f7f3] text-[#383834] text-lg font-semibold"
+                        id="source_lang"
+                    >
+                        {% for code in languages %} {% if code == "jpn" %}
+                        <option value="{{code}}" selected>
+                            {{code}} - {{languages[code]}}
+                        </option>
+                        " {% else %}
+                        <option value="{{code}}">
+                            {{code}} - {{languages[code]}}
+                        </option>
+                        " {% endif %} {% endfor %}
+                    </select>
+                    <p>拖动、粘贴或者上传图片或者pdf到这里</p>
+                    <input
+                        id="uploadimage"
+                        type="file"
+                        name="file"
+                        accept="image/*, application/pdf"
+                    />
+                    <embed class="hidden" id="ocr-pdf" />
+                    <img class="max-h-[50vh] object-contain" id="ocr-img" />
+                    <div
+                        id="drop-overlay"
+                        class="absolute inset-0 !m-0 pointer-events-none bg-black/30 rounded-3xl transition-[opacity] ease-out duration-[300ms]"
+                        style="opacity: 0"
+                    >
+                        <div
+                            class="relative text-white/75 h-full w-full text-6xl border border-[12px] border-dashed border-white/75 rounded-3xl flex items-center justify-center"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="2em"
+                                height="2em"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    fill="currentColor"
+                                    d="M6 22q-.825 0-1.412-.587T4 20v-3h2v3h12v-3h2v3q0 .825-.587 1.413T18 22zM4 11V4q0-.825.588-1.412T6 2h8l6 6v3h-2V9h-5V4H6v7zm-3 4v-2h22v2zm11 2"
+                                />
+                            </svg>
+                        </div>
+                    </div>
+                </section>
+                <div class="lg:hidden max-lg:block h-px bg-black"></div>
+                <section class="result lg:basis-1/2 max-lg:grow max-lg:flex">
+                    <textarea
+                        class="bg-[#f7f7f3] max-lg:grow w-full lg:h-full resize-none outline-none p-4"
+                        id="resulttext"
+                        placeholder="识别的内容会在此处显示..."
+                    ></textarea>
+                </section>
+            </section>
 
-      <section class="shrink py-8">
+            <section class="shrink py-8">
+                <button
+                    class="drop-shadow-xl max-lg:sticky mx-auto block bg-[url(/static/img/side_entry_bg.png)] w-[280px] h-[80px] transition-[opacity] hover:opacity-60"
+                    onclick="doOCR()"
+                >
+                    提交
+                </button>
+            </section>
+        </main>
+        <footer
+            class="p-12 text-center shrink-1 [&_a]:underline bg-[#383834] text-white"
+        >
+            <p>
+                Powered by
+                <a href="https://github.com/tesseract-ocr/tesseract"
+                    >Tesseract OCR.</a
+                >
+                <a href="https://github.com/santhoshtr/tesseract-web"
+                    >Source code</a
+                >. The uploaded images are immediately
+                <a
+                    href="https://github.com/santhoshtr/tesseract-web/blob/master/ocr.py#L74"
+                    >deleted</a
+                >
+                after conversion to text. No data is saved in the server.
+            </p>
+        </footer>
         <button
-          class="drop-shadow-xl max-lg:sticky mx-auto block bg-[url(/static/img/side_entry_bg.png)] w-[280px] h-[80px] transition-[opacity] hover:opacity-60"
-          onclick="doOCR()"
+            onclick="doOCR()"
+            class="fixed bottom-1/2 right-12 rounded-full transition-colors bg-[#fce8e6] hover:bg-[#f7bbb5] active:bg-[#fca097] p-4 box-shadow-xl text-base shadow-lg"
         >
-          提交
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="1em"
+                height="1em"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    fill="currentColor"
+                    d="M6 22q-.825 0-1.412-.587T4 20v-3h2v3h12v-3h2v3q0 .825-.587 1.413T18 22zM4 11V4q0-.825.588-1.412T6 2h8l6 6v3h-2V9h-5V4H6v7zm-3 4v-2h22v2zm11 2"
+                />
+            </svg>
         </button>
-      </section>
-    </main>
-    <footer
-      class="p-12 text-center shrink-1 [&_a]:underline bg-[#383834] text-white"
-    >
-      <p>
-        Powered by
-        <a href="https://github.com/tesseract-ocr/tesseract">Tesseract OCR.</a>
-        <a href="https://github.com/santhoshtr/tesseract-web">Source code</a>.
-        The uploaded images are immediately
-        <a
-          href="https://github.com/santhoshtr/tesseract-web/blob/master/ocr.py#L74"
-          >deleted</a
+        <button
+            onclick="doCopy()"
+            class="fixed bottom-[calc(50%+64px)] right-12 rounded-full transition-colors bg-[#fce8e6] hover:bg-[#f7bbb5] active:bg-[#fca097] p-4 box-shadow-xl text-base shadow-lg"
         >
-        after conversion to text. No data is saved in the server.
-      </p>
-    </footer>
-    <button
-      onclick="doOCR()"
-      class="lg:hidden max-lg:block fixed bottom-1/2 right-12 rounded-full transition-colors bg-[#fce8e6] hover:bg-[#f7bbb5] active:bg-[#fca097] p-4 box-shadow-xl text-base shadow-lg"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="1em"
-        height="1em"
-        viewBox="0 0 24 24"
-      >
-        <path
-          fill="currentColor"
-          d="M6 22q-.825 0-1.412-.587T4 20v-3h2v3h12v-3h2v3q0 .825-.587 1.413T18 22zM4 11V4q0-.825.588-1.412T6 2h8l6 6v3h-2V9h-5V4H6v7zm-3 4v-2h22v2zm11 2"
-        />
-      </svg>
-    </button>
-    <button
-      onclick="doCopy()"
-      class="fixed bottom-[calc(50%+64px)] right-12 rounded-full transition-colors bg-[#fce8e6] hover:bg-[#f7bbb5] active:bg-[#fca097] p-4 box-shadow-xl text-base shadow-lg"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="1em"
-        height="1em"
-        viewBox="0 0 24 24"
-      >
-        <path
-          fill="currentColor"
-          d="M9 18q-.825 0-1.412-.587T7 16V4q0-.825.588-1.412T9 2h9q.825 0 1.413.588T20 4v12q0 .825-.587 1.413T18 18zm0-2h9V4H9zm-4 6q-.825 0-1.412-.587T3 20V6h2v14h11v2zm4-6V4z"
-        />
-      </svg>
-    </button>
-    <script src="{{ url_for('static', filename='main.js') }}"></script>
-  </body>
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="1em"
+                height="1em"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    fill="currentColor"
+                    d="M9 18q-.825 0-1.412-.587T7 16V4q0-.825.588-1.412T9 2h9q.825 0 1.413.588T20 4v12q0 .825-.587 1.413T18 18zm0-2h9V4H9zm-4 6q-.825 0-1.412-.587T3 20V6h2v14h11v2zm4-6V4z"
+                />
+            </svg>
+        </button>
+        <script src="{{ url_for('static', filename='main.js') }}"></script>
+    </body>
 </html>
