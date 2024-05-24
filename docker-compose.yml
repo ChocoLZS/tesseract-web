@@ -1,0 +1,8 @@
+version: "3"
+
+services:
+    tesseract-web:
+        image: tesseract-ocr:latest
+        restart: always
+        ports:
+            - 20001:80
