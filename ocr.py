@@ -11,23 +11,35 @@ from werkzeug.utils import secure_filename
 __author__ = "Santhosh Thottingal <santhosh.thottingal@gmail.com>"
 __source__ = "https://github.com/santhoshtr/tesseract-web"
 
+# tesseract --list-langs
+langs_we_needed = {
+    'chi_sim': "简中",
+    "chi_sim_vert": "简中(垂直)",
+    "chi_tra": "繁中",
+    "chi_tra_vert": "繁中(垂直)",
+    "jpn": "日语",
+    "jpn_vert": "日语(垂直)",
+}
+
 app = Flask(__name__)
 UPLOAD_FOLDER = "./static/uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
-app.config["SUPPORTED_FORMATS"] = ["png", "jpeg", "jpg", "bmp", "pnm", "gif", "tiff", "webp", "pdf"]
+app.config["SUPPORTED_FORMATS"] = ["png", "jpeg",
+                                   "jpg", "bmp", "pnm", "gif", "tiff", "webp", "pdf"]
 
 
 def pdf_to_img(pdf_file):
     return pdf2image.convert_from_path(pdf_file)
 
 
-def ocr_core(image: Image, language="en"):
-    text = pytesseract.image_to_string(image, lang=Language.get(language).to_alpha3())
+def ocr_core(image: Image, language="chi_sim"):
+    text = pytesseract.image_to_string(
+        image, lang=language)
     return text
 
 
-def pdf_to_text(pdf_file_path: str, language="en") -> str:
+def pdf_to_text(pdf_file_path: str, language="chi_sim") -> str:
     texts = []
     images = pdf_to_img(pdf_file_path)
     for _pg, img in enumerate(images):
@@ -39,10 +51,12 @@ def pdf_to_text(pdf_file_path: str, language="en") -> str:
 def get_languages() -> dict:
     languages = {}
     alpha3codes = pytesseract.get_languages()
-    for code in alpha3codes:
-        language = Language.get(code)
+    alpha3codes_we_needed = [
+        string for string in alpha3codes if string in langs_we_needed
+    ]
+    for code in alpha3codes_we_needed:
+        languages[code] = langs_we_needed[code]
 
-        languages[language.language] = language.autonym()
     return languages
 
 
