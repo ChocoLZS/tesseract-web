@@ -153,6 +153,14 @@
                 />
             </svg>
         </button>
+        <label
+            class="fixed bottom-[calc(50%-64px)] flex right-12 rounded-full transition-colors bg-[#fce8e6] hover:bg-[#f7bbb5] active:bg-[#fca097] p-4 box-shadow-xl text-base shadow-lg"
+        >
+            <input type="checkbox" id="removeWhitespace" class="peer" checked />
+            <span class="ml-3 text-sm font-medium text-gray-900 leading-none"
+                >去除空白和换行</span
+            >
+        </label>
         <script src="{{ url_for('static', filename='main.js') }}"></script>
     </body>
 </html>

@@ -143,7 +143,15 @@ function doOCR() {
     })
         .then((response) => response.json())
         .then((result) => {
-            resultEl.value = result.error || result.text;
+            const removeWhitespaceSwitch =
+                document.querySelector("#removeWhitespace");
+            if (result.error) {
+                resultEl.value = result.error
+            } else {
+                resultEl.value = removeWhitespaceSwitch.checked
+                    ? result.text.replace(/\s+/g, "")
+                    : result.text;
+            }
             // change result style
             resultEl.style.height = resultEl.scrollHeight + "px";
         })
